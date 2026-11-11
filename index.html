@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Impact Infini</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--tx:#1d2b24;--mu:#6b7a72;--ac:#1f8a5b;--bd:#dcd8cc;--hl:#e7f5ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a16;--card:#1b2620;--tx:#e8efe9;--mu:#92a399;--ac:#43c48a;--bd:#2e3d35;--hl:#1e3a2d}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:640px;margin:auto;padding:14px}
+h1{font-size:20px;margin:0}.sub{color:var(--mu);font-size:13px;margin:2px 0 12px}
+.stats{display:flex;gap:8px;margin-bottom:12px}.st{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;text-align:center}
+.st b{display:block;font-size:20px;color:var(--ac)}.st span{font-size:11px;color:var(--mu)}
+.mix{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.slot{flex:1;min-height:64px;border:2px dashed var(--bd);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--card);padding:4px;text-align:center}
+.plus{font-size:22px;color:var(--mu)}
+#log{background:var(--hl);border-radius:12px;padding:10px 12px;font-size:14px;min-height:46px;margin-bottom:12px}
+.inv{display:flex;flex-wrap:wrap;gap:6px}
+.it{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:7px 11px;font-size:14px;cursor:pointer;color:var(--tx)}
+.it.sel{border-color:var(--ac);background:var(--hl)}.it small{color:var(--mu)}
+.bar{display:flex;gap:8px;margin:12px 0}
+input{flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:14px}
+button{padding:8px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:13px;cursor:pointer}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:4px}.chip{white-space:nowrap;border-radius:20px}.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}select{padding:8px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:13px}
+.real{margin-top:16px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;font-size:13px;color:var(--mu)}
+.real a{color:var(--ac);margin-right:10px}
+
+.ov{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;width:100%;max-width:360px}
+.box h2{margin:0 0 4px;font-size:20px}.box p{margin:0 0 14px;color:var(--mu);font-size:13px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{flex:1}.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.box input{width:100%;margin-bottom:8px;flex:none}
+.box .go{width:100%;background:var(--ac);color:#fff;border-color:var(--ac);padding:11px;font-size:15px;margin-top:4px}
+.box .lnk{width:100%;margin-top:8px;border:none;background:none;color:var(--mu);text-decoration:underline}
+.err{color:#d33;font-size:13px;min-height:18px;margin:4px 0}
+#ubar{display:none;align-items:center;gap:8px;font-size:12px;color:var(--mu);margin-bottom:8px}
+#ubar b{color:var(--tx)}#ubar span{flex:1}
+</style></head><body>
+<div class="ov" id="ov" style="display:none"><div class="box">
+<h2>🌍 Impact Infini</h2><p>Connecte-toi pour retrouver ta progression sur tous tes appareils.</p>
+<div class="tabs"><button id="tl" class="on" onclick="setMode('login')">Connexion</button><button id="tr" onclick="setMode('register')">Créer un compte</button></div>
+<input id="ps" placeholder="Pseudo" autocomplete="username" maxlength="20" autocapitalize="none">
+<input id="pw" type="password" placeholder="Mot de passe (8 caractères min.)" autocomplete="current-password">
+<input id="pw2" type="password" placeholder="Confirmer le mot de passe" autocomplete="new-password" style="display:none">
+<div class="err" id="err"></div>
+<button class="go" id="gob" onclick="submitAuth()">Se connecter</button>
+<button class="lnk" onclick="guest()">Jouer sans compte (sauvegarde sur cet appareil)</button>
+</div></div>
+<div id="ubar"><span>👤 <b id="un"></b> · <small id="sy"></small></span><button onclick="logout()">Déconnexion</button></div>
+<h1>🌍 Impact Infini</h1>
+<p class="sub">Touche deux éléments pour les combiner. Attention : tout ne marche pas ! Certains mélanges sont impossibles. Le jeu, lui, ne s’arrête jamais.</p>
+<div class="stats"><div class="st"><b id="imp">0</b><span>personnes aidées</span></div><div class="st"><b id="nb">0</b><span>découvertes</span></div><div class="st"><b id="tier">0</b><span>niveau max</span></div></div>
+<div class="mix" id="mix"></div><div class="bar" id="act" style="display:none"></div><div class="mix" id="old" style="display:none"><div class="slot" id="sa">?</div><div class="slot" id="sb">?</div></div>
+<div id="log">Tu démarres avec 4 éléments. Essaie de combiner 💧 Eau et 🟫 Terre…</div>
+<div class="bar"><input id="q" placeholder="Rechercher…" oninput="render()"><select id="so" onchange="render()"><option value="niv">Par niveau</option><option value="rec">Récents</option><option value="az">A → Z</option></select><button onclick="reset()">Réinitialiser</button></div>
+<div class="chips" id="chips"></div><div class="inv" id="inv"></div>
+<div class="real" id="ach"></div>
+<div class="real"><b>Et dans la vraie vie ?</b> Ce jeu est une fiction, mais l’aide réelle existe. Si l’envie te prend de donner ou de t’engager :<br><br>
+<a href="https://www.msf.fr" target="_blank" rel="noopener">Médecins Sans Frontières</a><a href="https://www.croix-rouge.fr" target="_blank" rel="noopener">Croix-Rouge</a><a href="https://www.unicef.fr" target="_blank" rel="noopener">UNICEF</a><a href="https://www.restosducoeur.org" target="_blank" rel="noopener">Restos du Cœur</a></div>
+<script>
+const BASE=[["Eau","💧","eau"],["Brique","🧱","abri"],["Graine","🌱","nourriture"],["Soleil","☀️","énergie"],["Livre","📖","éducation"],["Médicament","💊","santé"],["Bénévole","🙋","humain"],["Argent","💶","humain"],["Terre","🟫","nourriture"],["Bois","🪵","abri"],["Vaccin","💉","santé"],["Feu","🔥","énergie"],["Ordinateur","💻","éducation"],["Vêtement","🧥","abri"]];
+BASE.splice(0,BASE.length,...BASE.filter(b=>["Eau","Terre","Soleil","Bénévole"].includes(b[0])));
+const R={"Brique|Eau":["Puits","🕳️","eau","Un puits protège un village des longues marches vers l’eau."],
+"Eau|Graine":["Potager","🥕","nourriture","Un potager irrigué nourrit plusieurs familles toute l’année."],
+"Graine|Soleil":["Récolte","🌾","nourriture","Le soleil et la patience donnent de belles récoltes."],
+"Bénévole|Récolte":["Banque alimentaire","🥫","nourriture","Les surplus deviennent des repas distribués."],
+"Bénévole|Livre":["École","🏫","éducation","Un lieu pour apprendre à lire, compter et rêver."],
+"Argent|École":["Bourse d’études","🎓","éducation","Aucun enfant ne devrait arrêter l’école faute d’argent."],
+"Bénévole|Médicament":["Dispensaire","🏥","santé","Des soins de base accessibles près de chez soi."],
+"Argent|Soleil":["Panneau solaire","🔆","énergie","Une électricité propre pour éclairer et soigner."],
+"Brique|Bénévole":["Abri","🏠","abri","Un toit solide après une catastrophe."],
+"Eau|Soleil":["Eau purifiée","🫗","eau","Le soleil peut aider à désinfecter l’eau (méthode SODIS)."],
+"Argent|Bénévole":["Collecte de fonds","📣","humain","Ensemble, les petits dons deviennent de grands projets."],
+"Argent|Livre":["Bibliothèque","📚","éducation","Les livres voyagent là où l’école ne va pas."],
+"Panneau solaire|Puits":["Pompe solaire","⚙️","énergie","L’eau remonte sans carburant."],
+"Dispensaire|Eau purifiée":["Clinique propre","🩺","santé","L’hygiène évite beaucoup de maladies."],
+"Eau|Terre":["Champ irrigué","🚜","nourriture","Irriguer permet de cultiver même en saison sèche."],
+"Graine|Terre":["Pépinière","🌳","nourriture","On y élève des jeunes arbres pour reboiser et nourrir."],
+"Bois|Feu":["Cuisinière améliorée","🍳","énergie","Moins de bois brûlé, moins de fumée dans les maisons."],
+"Bénévole|Vaccin":["Campagne de vaccination","🛡️","santé","Vacciner protège toute une communauté."],
+"Livre|Ordinateur":["Bibliothèque numérique","💾","éducation","Des milliers de livres sur un seul appareil."],
+"Ordinateur|Soleil":["Salle informatique solaire","🖥️","éducation","Apprendre le numérique même sans réseau électrique."],
+"Bénévole|Vêtement":["Vestiaire solidaire","👕","humain","Des vêtements chauds pour passer l’hiver."],
+"Bois|Brique":["Maison solide","🏡","abri","Un logement durable pour une famille."]};
+Object.assign(R,{"Eau|Terre":["Graine","🌱","nourriture","La terre humide fait germer une première graine."],
+"Soleil|Terre":["Brique","🧱","abri","De la terre séchée au soleil : la brique, base de tout abri."],
+"Eau|Pépinière":["Bois","🪵","abri","Les arbres arrosés finissent par donner du bois."],
+"Bois|Soleil":["Feu","🔥","énergie","Un foyer pour cuisiner et se chauffer."],
+"Bois|Bénévole":["Livre","📖","éducation","Des bénévoles fabriquent des cahiers et des manuels."],
+"Brique|Récolte":["Marché","🏪","humain","Un lieu où les familles vendent leurs récoltes."],
+"Marché|Récolte":["Argent","💶","humain","Vendre sa récolte, c’est gagner un revenu."],
+"Argent|Pépinière":["Médicament","💊","santé","Financer la culture de plantes médicinales."],
+"Argent|Médicament":["Vaccin","💉","santé","La recherche coûte cher, mais protège des millions de personnes."],
+"Argent|Panneau solaire":["Ordinateur","💻","éducation","Un ordinateur alimenté au soleil, sans réseau électrique."],
+"Bénévole|Graine":["Vêtement","🧥","abri","Coton cultivé, filé et cousu par des bénévoles."],
+"Graine|Puits":["Champ irrigué","🚜","nourriture","Irriguer permet de cultiver même en saison sèche."]});
+const IMP={"Eau|Feu":"L’eau éteint le feu… il ne reste que de la fumée.","Feu|Livre":"Brûler un livre n’aide personne !","Feu|Vêtement":"Un vêtement brûlé ne réchauffe plus personne.","Feu|Médicament":"La chaleur détruit le médicament.","Feu|Vaccin":"Un vaccin doit rester au frais, pas au feu.","Feu|Ordinateur":"Ton ordinateur fond. Mauvaise idée.","Argent|Feu":"Brûler de l’argent n’aide personne.","Eau|Ordinateur":"Court-circuit ! L’ordinateur est foutu.","Eau|Livre":"Le livre est trempé et illisible.","Terre|Vaccin":"Enterrer un vaccin ne sert à rien.","Médicament|Terre":"Le médicament est perdu dans la terre.","Brique|Graine":"Une graine ne pousse pas dans une brique.","Brique|Vaccin":"Rien à faire avec ces deux-là.","Livre|Terre":"Un livre enterré ? Il pourrit."};
+const FAILS=["Rien ne se passe… ces deux éléments ne vont pas ensemble.","Essai raté : la combinaison n’est pas réaliste.","Ça ne donne rien d’utile. Essaie autre chose !","Les bénévoles hochent la tête : ça ne marchera pas.","Il manque quelque chose pour que ça fonctionne."];
+const NOUNS=["Atelier","Réseau","Fonds","Campagne","Centre","Coopérative","Clinique mobile","Programme","Alliance","Fondation","Caravane","Observatoire"];
+const ADJ={eau:"de l’eau",abri:"du logement",nourriture:"de l’alimentation",énergie:"de l’énergie",éducation:"du savoir",santé:"de la santé",humain:"de la solidarité"};
+const EM={eau:["🚰","🌊"],abri:["🏘️","🏗️"],nourriture:["🍲","🧺"],énergie:["🔋","💡"],éducation:["✏️","🧠"],santé:["🩹","❤️‍🩹"],humain:["🤝","🌟"]};
+let S;try{S=JSON.parse(localStorage.getItem("ii3")||"null")}catch(e){}
+function fresh(){const items={};BASE.forEach(([n,e,g])=>items[n]={e,g,t:0,i:0});return{items,imp:0,sel:null,hist:["Brique|Eau"].slice(0,0)}}
+if(!S||!S.items)S=fresh();
+BASE.forEach(([n,e,g])=>{if(!S.items[n])S.items[n]={e,g,t:0,i:0}});
+function save(){try{localStorage.setItem("ii3",JSON.stringify(S))}catch(e){}}
+function h(s){let x=7;for(const c of s)x=(x*31+c.charCodeAt(0))>>>0;return x}
+function combine(a,b){const k=[a,b].sort().join("|"),A=S.items[a],B=S.items[b],t=Math.max(A.t,B.t)+1;
+ if(IMP[k])return{fail:IMP[k]};
+ if(R[k]){const r=R[k];return{n:r[0],e:r[1],g:r[2],t,f:r[3]}}
+ if(h(k+"!")%100<32)return{fail:FAILS[h(k)%FAILS.length]};
+ const x=h(k),g=x%2?A.g:B.g,n=NOUNS[x%NOUNS.length]+" "+ADJ[g]+" · niv. "+t;
+ return{n,e:EM[g][(x>>3)%2],g,t,f:"Une nouvelle initiative née de "+a+" et "+b+"."}}
+function pick(n){const el=S.sel;
+ if(el===null){S.sel=n;ui();return}
+ const a=el,b=n;S.sel=null;document.getElementById("sa").textContent=S.items[a].e+" "+a;document.getElementById("sb").textContent=S.items[b].e+" "+b;
+ const r=combine(a,b),L=document.getElementById("log");
+ if(r.fail){S.fails=(S.fails||0)+1;L.innerHTML="❌ "+r.fail+"<br><small>Essais ratés : "+S.fails+"</small>"}
+ else if(S.items[r.n]){L.innerHTML="Déjà découvert : "+r.e+" <b>"+r.n+"</b>. Essaie une autre combinaison !"}
+ else{const gain=Math.round(20*Math.pow(1.6,r.t));S.items[r.n]={e:r.e,g:r.g,t:r.t,i:gain};S.imp+=gain;
+  L.innerHTML="✨ <b>"+r.e+" "+r.n+"</b> (niveau "+r.t+")<br>"+r.f+"<br><b>+"+gain.toLocaleString("fr-FR")+" personnes aidées</b>"}
+ save();ui()}
+function reset(){if(confirm("Tout recommencer ?")){S=fresh();save();document.getElementById("log").textContent="Nouvelle partie !";document.getElementById("sa").textContent="?";document.getElementById("sb").textContent="?";ui()}}
+let F="tous";const TAGS=[["tous","Tout"],["eau","💧"],["nourriture","🌾"],["abri","🏠"],["énergie","⚡"],["éducation","📚"],["santé","🏥"],["humain","🤝"]];
+function chips(){const c=document.getElementById("chips");c.innerHTML="";TAGS.forEach(([k,l])=>{const n=k==="tous"?Object.keys(S.items).length:Object.values(S.items).filter(o=>o.g===k).length;const b=document.createElement("button");b.className="chip"+(F===k?" on":"");b.textContent=l+" "+n;b.onclick=()=>{F=k;render()};c.appendChild(b)})}
+function render(){const q=document.getElementById("q").value.toLowerCase(),box=document.getElementById("inv");box.innerHTML="";
+ let L=Object.entries(S.items).map(([n,o],i)=>[n,o,i]).filter(([n,o])=>n.toLowerCase().includes(q)&&(F==="tous"||o.g===F));const m=document.getElementById("so").value;L.sort((a,b)=>m==="rec"?b[2]-a[2]:m==="az"?a[0].localeCompare(b[0]):b[1].t-a[1].t||a[0].localeCompare(b[0]));chips();L.slice(0,400).forEach(([n,o])=>{
+  const d=document.createElement("div");d.className="it"+((S.pk||[]).includes(n)?" sel":"");d.innerHTML=o.e+" "+n.replace(/ · niv\. (\d+)/," <small>n$1</small>");d.onclick=()=>pick(n);box.appendChild(d)})}
+function ui(){const v=Object.values(S.items);document.getElementById("imp").textContent=S.imp.toLocaleString("fr-FR");
+ document.getElementById("nb").textContent=v.length-BASE.length;document.getElementById("tier").textContent=Math.max(...v.map(o=>o.t));
+ if(S.sel){document.getElementById("sa").textContent=S.items[S.sel].e+" "+S.sel;document.getElementById("sb").textContent="?"}
+ render()}
+const SL=[[0,2],[400,3],[5000,4],[100000,5]];
+const ACH=[[100,"Premiers pas","100 personnes aidées."],[400,"Fusion triple","Tu peux fusionner 3 éléments !"],[2000,"Village solidaire","2 000 personnes aidées."],[5000,"Fusion quadruple","Tu peux fusionner 4 éléments !"],[25000,"Grande ONG","25 000 personnes aidées."],[100000,"Fusion quintuple","Tu peux fusionner 5 éléments !"],[1000000,"Un million de vies","Un impact historique."]];
+Object.assign(R,{"Argent|Bénévole|Livre":["Campagne d’alphabétisation","🔤","éducation","Apprendre à lire à des milliers d’adultes."],
+"Argent|Brique|Bénévole":["Quartier reconstruit","🏘️","abri","Tout un quartier relevé après une catastrophe."],
+"Bénévole|Eau purifiée|Médicament":["Hôpital de campagne","⛑️","santé","Des soins complets, même en zone isolée."],
+"Bénévole|Panneau solaire|Puits":["Village autonome","🌄","énergie","Eau et électricité gérées par les habitants."],
+"Bénévole|Graine|Terre":["Chantier de reboisement","🌲","nourriture","Des milliers d’arbres plantés ensemble."]});
+function slots(){let n=2;SL.forEach(([a,s])=>{if(S.imp>=a)n=s});return n}
+function fuse(l){if(l.length==2)return combine(l[0],l[1]);
+ for(let i=0;i<l.length;i++)for(let j=i+1;j<l.length;j++){const q=[l[i],l[j]].sort().join("|");if(IMP[q])return{fail:IMP[q]}}
+ const k=[...l].sort().join("|"),t=Math.max(...l.map(n=>S.items[n].t))+1;
+ if(R[k]){const r=R[k];return{n:r[0],e:r[1],g:r[2],t,f:r[3]}}
+ if(h(k+"!")%100<25+l.length*5)return{fail:FAILS[h(k)%FAILS.length]};
+ const x=h(k),g=S.items[l[x%l.length]].g,n=NOUNS[x%NOUNS.length]+" "+ADJ[g]+" · niv. "+t;
+ return{n,e:EM[g][(x>>3)%2],g,t,f:"Une grande initiative née de "+l.join(", ")+"."}}
+function toast(t){const d=document.createElement("div");d.textContent=t;d.style.cssText="position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);background:var(--ac);color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;z-index:99;max-width:90%;text-align:center";document.body.appendChild(d);setTimeout(()=>d.remove(),3500)}
+function pick(n){S.pk=S.pk||[];const m=slots();
+ if(m==2){S.pk.push(n);if(S.pk.length<2){ui();return}go();return}
+ const i=S.pk.indexOf(n);if(i>=0)S.pk.splice(i,1);else if(S.pk.length<m)S.pk.push(n);ui()}
+function go(){const l=(S.pk||[]).slice();if(l.length<2)return;S.pk=[];S.last=l;
+ const r=fuse(l),L=document.getElementById("log"),old=S.imp;
+ if(r.fail){S.fails=(S.fails||0)+1;L.innerHTML="❌ "+r.fail+"<br><small>Essais ratés : "+S.fails+"</small>"}
+ else if(S.items[r.n]){L.innerHTML="Déjà découvert : "+r.e+" <b>"+r.n+"</b>. Essaie une autre combinaison !"}
+ else{const gain=Math.round(20*Math.pow(1.6,r.t)*(l.length-1));S.items[r.n]={e:r.e,g:r.g,t:r.t,i:gain};S.imp+=gain;
+  L.innerHTML="✨ <b>"+r.e+" "+r.n+"</b> (niveau "+r.t+")<br>"+r.f+"<br><b>+"+gain.toLocaleString("fr-FR")+" personnes aidées</b>";
+  const na=ACH.filter(a=>old<a[0]&&S.imp>=a[0]);
+  if(na.length){L.innerHTML+="<br>"+na.map(a=>"🏆 <b>Succès : "+a[1]+"</b> — "+a[2]).join("<br>");toast("🏆 Succès : "+na[na.length-1][1]+" — "+na[na.length-1][2])}}
+ save();ui()}
+function reset(){if(confirm("Tout recommencer ?")){S=fresh();save();document.getElementById("log").textContent="Nouvelle partie !";ui()}}
+function ui(){const v=Object.values(S.items),pk=S.pk||[];
+ document.getElementById("imp").textContent=S.imp.toLocaleString("fr-FR");
+ document.getElementById("nb").textContent=v.length-BASE.length;
+ document.getElementById("tier").textContent=Math.max(...v.map(o=>o.t));
+ const m=slots(),show=pk.length?pk:(S.last||[]),mx=document.getElementById("mix");mx.innerHTML="";
+ for(let i=0;i<m;i++){if(i)mx.insertAdjacentHTML("beforeend",'<div class="plus" style="font-size:'+(m>3?14:22)+'px">+</div>');const d=document.createElement("div");d.className="slot";d.style.fontSize=m>3?"11px":"14px";const o=show[i]&&S.items[show[i]];d.textContent=o?o.e+" "+show[i]:"?";mx.appendChild(d)}
+ const ac=document.getElementById("act");
+ if(m>2){ac.style.display="flex";ac.innerHTML='<button onclick="go()" style="flex:1" '+(pk.length<2?"disabled":"")+'>⚗️ Fusionner ('+pk.length+'/'+m+')</button><button onclick="S.pk=[];ui()">Vider</button>'}else ac.style.display="none";
+ document.getElementById("ach").innerHTML="<b>🏆 Succès</b> — fusion jusqu’à "+m+" éléments<br><br>"+ACH.map(a=>S.imp>=a[0]?"🏆 <b>"+a[1]+"</b> <small>"+a[2]+"</small>":'🔒 <span style="opacity:.6">'+a[1]+" — "+a[0].toLocaleString("fr-FR")+" personnes</span>").join("<br>");
+ render()}
+/* ===== COMPTES (Supabase) ===== */
+const SB_URL="https://puqzzcrplbchaeycnvvf.supabase.co";   // ex : https://abcdxyz.supabase.co
+const SB_KEY="sb_publishable_a8gX75fUu5cXr1Ps3AGeoA_8Fy6rUvO";   // clé "anon" ou "publishable" (jamais la clé service_role)
+let SES=null,PSEUDO=null,MODE="login",tm=null;
+const mail=p=>p.toLowerCase()+"@impactinfini.app";
+function setSync(t){const e=document.getElementById("sy");if(e)e.textContent=t}
+function saveSes(){try{localStorage.setItem("ii_ses",JSON.stringify(SES))}catch(e){}}
+function save(){if(SES){clearTimeout(tm);setSync("…");tm=setTimeout(push,1200);return}
+ try{localStorage.setItem("ii3",JSON.stringify(S))}catch(e){}}
+function msg(j,st){const m=(j&&(j.msg||j.error_description||j.message))||"";
+ if(/already registered|already been registered/i.test(m))return"Ce pseudo est déjà pris.";
+ if(/invalid login/i.test(m))return"Pseudo ou mot de passe incorrect.";
+ if(st==429)return"Trop d’essais, réessaie dans un moment.";
+ return m||"Erreur serveur ("+st+")"}
+async function refresh(){try{const r=await fetch(SB_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:SES.refresh_token})});
+ if(!r.ok)return false;const j=await r.json();SES={access_token:j.access_token,refresh_token:j.refresh_token};saveSes();return true}catch(e){return false}}
+async function sb(path,opt,auth,retry){opt=opt||{};const h={apikey:SB_KEY,"Content-Type":"application/json",...(opt.headers||{})};
+ if(auth&&SES)h.Authorization="Bearer "+SES.access_token;
+ let r;try{r=await fetch(SB_URL+path,{method:opt.method||"GET",headers:h,body:opt.body})}catch(e){throw new Error("Serveur injoignable. Réessaie plus tard.")}
+ if(r.status==401&&auth&&SES&&!retry&&await refresh())return sb(path,opt,auth,true);
+ let j=null;try{j=await r.json()}catch(e){}
+ if(!r.ok)throw new Error(msg(j,r.status));return j}
+async function push(){try{await sb("/rest/v1/progress?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({state:S,updated_at:new Date().toISOString()})},true);setSync("✓ sauvegardé")}catch(e){setSync("⚠️ non synchronisé")}}
+function setMode(m){MODE=m;document.getElementById("tl").className=m=="login"?"on":"";document.getElementById("tr").className=m=="register"?"on":"";
+ document.getElementById("pw2").style.display=m=="register"?"block":"none";document.getElementById("gob").textContent=m=="login"?"Se connecter":"Créer mon compte";
+ document.getElementById("pw").autocomplete=m=="login"?"current-password":"new-password";document.getElementById("err").textContent=""}
+async function submitAuth(){const ps=document.getElementById("ps").value.trim(),pw=document.getElementById("pw").value,e=document.getElementById("err");e.textContent="";
+ if(!/^[A-Za-z0-9_-]{3,20}$/.test(ps)){e.textContent="Pseudo : 3 à 20 caractères (lettres, chiffres, - et _).";return}
+ if(pw.length<8){e.textContent="Mot de passe : 8 caractères minimum.";return}
+ if(MODE=="register"&&pw!==document.getElementById("pw2").value){e.textContent="Les mots de passe ne correspondent pas.";return}
+ const b=document.getElementById("gob");b.disabled=true;
+ try{const body=JSON.stringify({email:mail(ps),password:pw});
+  const j=await sb(MODE=="register"?"/auth/v1/signup":"/auth/v1/token?grant_type=password",{method:"POST",body},false);
+  if(!j||!j.access_token)throw new Error("Compte créé mais non activé : désactive la confirmation par e-mail dans Supabase.");
+  SES={access_token:j.access_token,refresh_token:j.refresh_token};saveSes();
+  let st=null;if(MODE=="login"){const rows=await sb("/rest/v1/progress?select=state&limit=1",{},true);st=rows&&rows[0]&&rows[0].state}
+  enter(ps,st)}catch(x){e.textContent=x.message}
+ b.disabled=false}
+function enter(ps,st){PSEUDO=ps;try{localStorage.setItem("ii_ps",ps)}catch(e){}
+ S=(st&&st.items)?st:fresh();BASE.forEach(([n,e,g])=>{if(!S.items[n])S.items[n]={e,g,t:0,i:0}});
+ document.getElementById("ov").style.display="none";document.getElementById("ubar").style.display="flex";document.getElementById("un").textContent=ps;document.getElementById("pw").value="";document.getElementById("pw2").value="";
+ setSync("✓ connecté");ui();if(!(st&&st.items))push()}
+function guest(){document.getElementById("ov").style.display="none"}
+function logout(){try{localStorage.removeItem("ii_ses");localStorage.removeItem("ii_ps")}catch(e){}location.reload()}
+async function initAuth(){let t=null;try{t=JSON.parse(localStorage.getItem("ii_ses")||"null")}catch(e){}
+ if(!t){document.getElementById("ov").style.display="flex";return}
+ SES=t;try{const rows=await sb("/rest/v1/progress?select=state&limit=1",{},true);enter(localStorage.getItem("ii_ps")||"",rows&&rows[0]&&rows[0].state)}
+ catch(e){SES=null;document.getElementById("ov").style.display="flex"}}
+ui();
+initAuth();
+</script></body></html>
